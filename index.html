@@ -19,9 +19,59 @@
             <input type="email" id="email" placeholder="Correo electrónico" required>
             <input type="password" id="password" placeholder="Contraseña" required>
             <button type="submit">Iniciar Sesión</button>
+            <p class="auth-switch">¿No tienes cuenta? <a href="#" id="show-signup">Regístrate</a></p>
+        </form>
+        <form id="signup-form" class="hidden">
+            <input type="email" id="signup-email" placeholder="Correo electrónico" required>
+            <input type="password" id="signup-password" placeholder="Contraseña" required>
+            <p>Selecciona tu rol:</p>
+            <div class="role-radio">
+                <input type="radio" id="role-custodio" name="role" value="custodio" checked>
+                <label for="role-custodio">Custodio</label>
+                <input type="radio" id="role-monitoreo" name="role" value="monitoreo">
+                <label for="role-monitoreo">Monitoreo</label>
+            </div>
+            <button type="submit">Registrarse</button>
+            <p class="auth-switch">¿Ya tienes cuenta? <a href="#" id="show-login">Inicia Sesión</a></p>
         </form>
     </div>
 
+    <div id="custodio-view" class="hidden">
+        <header>
+            <h1>Vista de Custodio</h1>
+            <button id="logout-btn">Cerrar Sesión</button>
+        </header>
+        <main>
+            <div id="map"></div>
+            <div id="quick-actions">
+                <button id="torton-btn"><img src="https://placehold.co/100x100/4dd0e1/000000?text=Torton" alt="Torton"></button>
+                <button id="trailer-btn"><img src="https://placehold.co/100x100/4dd0e1/000000?text=Trailer" alt="Trailer"></button>
+                <button id="container-btn"><img src="https://placehold.co/100x100/4dd0e1/000000?text=Contenedor" alt="Contenedor"></button>
+            </div>
+        </main>
+    </div>
+
+    <div id="monitoreo-view" class="hidden">
+        <header>
+            <h1>Vista de Monitoreo</h1>
+            <button id="logout-btn-monitoreo">Cerrar Sesión</button>
+        </header>
+        <main>
+            <div id="map-monitoreo"></div>
+            <div id="reports-list">
+                <h2>Reportes</h2>
+                <!-- Los reportes se insertarán aquí -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <!-- App Scripts -->
+    <script src="firebase-config.js"></script>
     <script src="main.js"></script>
 </body>
 </html>
