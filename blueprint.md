@@ -9,42 +9,10 @@ Esta aplicación está diseñada para facilitar la comunicación y coordinación
 
 ### **Autenticación y Roles de Usuario**
 
-*   **Inicio de Sesión:** Sistema de autenticación seguro que diferencia entre usuarios **custodio** y **monitoreo**.
-*   **Vistas Diferenciadas:** Cada rol de usuario tiene acceso a una interfaz y a funcionalidades específicas adaptadas a sus responsabilidades.
-
-### **Geolocalización y Mapa Interactivo**
-
-*   **Ubicación en Tiempo Real:** Los usuarios custodios comparten su ubicación, que se visualiza en un mapa interactivo.
-*   **Privacidad del Monitoreo:** La ubicación de los usuarios de monitoreo no se comparte para mantener la centralización de la supervisión.
-
-### **Funcionalidades para Custodios**
-
-*   **Acciones Rápidas:**
-    *   Botones con iconos para identificar tipos de unidades: **Torton**, **tráiler sin caja** y **contenedor marítimo**.
-    *   Teclado numérico para ingresar el número económico de la unidad.
-*   **Opciones de Reporte:**
-    1.  **Dar Acompañamiento:**
-        *   Inicia la grabación de video para evidencia.
-        *   Botón de **Finalizar** para terminar el acompañamiento.
-        *   Botón de **SOS** con marcación directa al 999 para emergencias.
-    2.  **Permanecer en Posición:**
-        *   Envía una notificación en **verde** al personal de monitoreo, indicando un reporte sin novedad.
-    3.  **Esperar Indicaciones:**
-        *   Abre un chat con el personal de monitoreo y envía una notificación en **amarillo** para solicitar instrucciones.
-
-### **Funcionalidades para Monitoreo**
-
-*   **Supervisión Centralizada:**
-    *   Visualización de los reportes y la ubicación de los custodios en el mapa.
-*   **Sistema de Notificaciones:**
-    *   Recepción de notificaciones codificadas por color según la naturaleza del reporte del custodio.
-*   **Comunicación Directa:**
-    *   Capacidad para chatear con los custodios y darles indicaciones.
-
-### **Comunicación**
-
-*   **Chat en Tiempo Real:** Facilita la comunicación entre custodios y personal de monitoreo, así como entre los propios custodios.
-*   **Estado de Conexión:** Muestra si los usuarios están en línea o desconectados.
+*   **Inicio de Sesión:** Sistema de autenticación seguro con Firebase que diferencia entre usuarios **custodio** y **monitoreo**.
+*   **Registro de Usuarios:** Permite a los nuevos usuarios registrarse con un correo, contraseña y rol.
+*   **Persistencia de Sesión:** Mantiene al usuario conectado hasta que cierra la sesión explícitamente.
+*   **Vistas Diferenciadas:** Redirección automática a una interfaz específica según el rol del usuario.
 
 ## **Diseño y Estilo**
 
@@ -58,18 +26,23 @@ Esta aplicación está diseñada para facilitar la comunicación y coordinación
 
 ## **Plan de Implementación Actual**
 
-### **Fase 2: Integración de Firebase y Vistas de Rol**
+### **Fase 3: Geolocalización y Mapa Interactivo con Leaflet**
 
-1.  **Integrar el SDK de Firebase:**
-    *   Añadir los scripts del SDK de Firebase para Authentication y Firestore en `index.html`.
-    *   Crear y configurar el archivo `firebase-config.js` con las credenciales del proyecto de Firebase.
-2.  **Implementar la Lógica de Autenticación con Firebase:**
-    *   En `main.js`, inicializar Firebase y utilizar `signInWithEmailAndPassword` para autenticar a los usuarios.
-    *   Implementar una función para crear nuevos usuarios (`createUserWithEmailAndPassword`) para facilitar las pruebas.
-    *   Manejar los errores de autenticación y mostrar mensajes al usuario.
-3.  **Crear las Vistas por Rol (Custodio y Monitoreo):**
-    *   Añadir la estructura HTML para las vistas de custodio y monitoreo en `index.html`.
-    *   Estilizar las nuevas vistas en `style.css` y mantenerlas ocultas por defecto.
-4.  **Implementar la Redirección Basada en Roles:**
-    *   Después de un inicio de sesión exitoso, consultar la base de datos de Firestore para obtener el rol del usuario.
-    *   Mostrar la vista correspondiente (`custodio-view` o `monitoreo-view`) y ocultar el contenedor de inicio de sesión.
+1.  **Integrar la Biblioteca Leaflet:**
+    *   Añadir el CSS y el JavaScript de Leaflet al archivo `index.html` desde una CDN.
+2.  **Configurar los Contenedores del Mapa:**
+    *   Ajustar `style.css` para dar a los elementos de mapa (`#map` y `#map-monitoreo`) una altura definida para que sean visibles.
+3.  **Implementar la Geolocalización del Custodio:**
+    *   En `main.js`, al mostrar la vista de custodio, solicitar permisos de geolocalización.
+    *   Usar `navigator.geolocation.watchPosition` para obtener la ubicación del custodio en tiempo real.
+    *   Inicializar un mapa de Leaflet en la vista del custodio y mostrar su ubicación con un marcador.
+    *   Centrar el mapa en la ubicación del custodio cada vez que se actualice.
+4.  **Sincronizar la Ubicación con Firestore:**
+    *   Cada vez que la ubicación del custodio se actualice, guardar las coordenadas (latitud y longitud) en una colección de Firestore llamada `locations`, usando el UID del usuario como identificador del documento.
+5.  **Implementar el Mapa de Monitoreo:**
+    *   Al mostrar la vista de monitoreo, inicializar un mapa de Leaflet.
+    *   Escuchar en tiempo real los cambios en la colección `locations` de Firestore.
+    *   Para cada custodio en la colección, mostrar un marcador en el mapa de monitoreo.
+    *   Actualizar la posición de los marcadores en tiempo real a medida que los custodios se mueven.
+6.  **Manejar la Desconexión:**
+    *   Al cerrar la sesión, el custodio debe dejar de compartir su ubicación y su registro debe eliminarse de la colección `locations` en Firestore para que desaparezca del mapa de monitoreo.

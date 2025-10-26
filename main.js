@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Elementos de la interfaz de usuario
+    // --- ELEMENTOS UI ---
     const loginContainer = document.getElementById('login-container');
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
@@ -11,93 +11,165 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logout-btn');
     const logoutBtnMonitoreo = document.getElementById('logout-btn-monitoreo');
 
-    // Eventos para cambiar entre formularios de inicio de sesión y registro
-    showSignup.addEventListener('click', (e) => {
-        e.preventDefault();
-        loginForm.classList.add('hidden');
-        signupForm.classList.remove('hidden');
-    });
+    // --- VARIABLES GLOBALES ---
+    let currentUser = null;
+    let custodioMap, monitoreoMap;
+    let userMarker, locationWatcherId;
+    const markers = {}; // Para guardar los marcadores de los custodios en el mapa de monitoreo
+    let unsubscribeFromLocations; // Para la escucha de Firestore
 
-    showLogin.addEventListener('click', (e) => {
-        e.preventDefault();
-        signupForm.classList.add('hidden');
-        loginForm.classList.remove('hidden');
-    });
+    // --- CAMBIO DE FORMULARIOS ---
+    showSignup.addEventListener('click', (e) => { e.preventDefault(); toggleForms(true); });
+    showLogin.addEventListener('click', (e) => { e.preventDefault(); toggleForms(false); });
 
-    // --- LÓGICA DE AUTENTICACIÓN ---
+    function toggleForms(isSigningUp) {
+        loginForm.classList.toggle('hidden', isSigningUp);
+        signupForm.classList.toggle('hidden', !isSigningUp);
+    }
 
-    // Escuchar cambios en el estado de autenticación
+    // --- AUTENTICACIÓN ---
     auth.onAuthStateChanged(user => {
         if (user) {
-            // Si el usuario está autenticado, obtener su rol y mostrar la vista correcta
+            currentUser = user;
             db.collection('users').doc(user.uid).get().then(doc => {
                 if (doc.exists) {
                     const userRole = doc.data().role;
                     showUserView(userRole);
                 } else {
                     console.error('No se encontró el rol del usuario.');
-                    auth.signOut(); // Cerrar sesión si no hay datos de rol
+                    auth.signOut();
                 }
             });
         } else {
-            // Si no hay usuario, mostrar la vista de inicio de sesión
-            loginContainer.classList.remove('hidden');
-            custodioView.classList.add('hidden');
-            monitoreoView.classList.add('hidden');
+            currentUser = null;
+            cleanupOnLogout();
+            showLoginView();
         }
     });
 
-    // Manejar el envío del formulario de inicio de sesión
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const email = loginForm['email'].value;
         const password = loginForm['password'].value;
-
-        auth.signInWithEmailAndPassword(email, password)
-            .then(userCredential => {
-                console.log('Usuario autenticado:', userCredential.user);
-            })
-            .catch(error => {
-                alert(`Error de autenticación: ${error.message}`);
-            });
+        auth.signInWithEmailAndPassword(email, password).catch(err => alert(err.message));
     });
 
-    // Manejar el envío del formulario de registro
     signupForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const email = signupForm['signup-email'].value;
         const password = signupForm['signup-password'].value;
         const role = signupForm['role'].value;
-
         auth.createUserWithEmailAndPassword(email, password)
-            .then(userCredential => {
-                // Guardar el rol del usuario en Firestore
-                return db.collection('users').doc(userCredential.user.uid).set({
-                    role: role,
-                    email: email
-                });
-            })
-            .then(() => {
-                console.log('Usuario registrado y rol guardado');
-            })
-            .catch(error => {
-                alert(`Error de registro: ${error.message}`);
-            });
+            .then(cred => db.collection('users').doc(cred.user.uid).set({ role, email }))
+            .catch(err => alert(err.message));
     });
 
-    // Manejar el cierre de sesión
     logoutBtn.addEventListener('click', () => auth.signOut());
     logoutBtnMonitoreo.addEventListener('click', () => auth.signOut());
 
-    // Función para mostrar la vista correcta según el rol
+    // --- LÓGICA DE VISTAS Y MAPAS ---
+
     function showUserView(role) {
         loginContainer.classList.add('hidden');
         if (role === 'custodio') {
-            custodioView.classList.remove('hidden');
             monitoreoView.classList.add('hidden');
+            custodioView.classList.remove('hidden');
+            initCustodioMap();
         } else if (role === 'monitoreo') {
-            monitoreoView.classList.remove('hidden');
             custodioView.classList.add('hidden');
+            monitoreoView.classList.remove('hidden');
+            initMonitoreoMap();
+        }
+    }
+
+    function showLoginView() {
+        loginContainer.classList.remove('hidden');
+        custodioView.classList.add('hidden');
+        monitoreoView.classList.add('hidden');
+    }
+
+    function initCustodioMap() {
+        custodioMap = L.map('map').setView([19.4326, -99.1332], 13); // Vista inicial en CDMX
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(custodioMap);
+
+        locationWatcherId = navigator.geolocation.watchPosition(position => {
+            const { latitude, longitude } = position.coords;
+            const latLng = [latitude, longitude];
+
+            if (!userMarker) {
+                userMarker = L.marker(latLng).addTo(custodioMap);
+            }
+            userMarker.setLatLng(latLng);
+            custodioMap.setView(latLng, 16);
+
+            // Actualizar ubicación en Firestore
+            db.collection('locations').doc(currentUser.uid).set({
+                lat: latitude,
+                lng: longitude,
+                email: currentUser.email
+            }, { merge: true });
+
+        }, error => console.error("Error de geolocalización:", error), { enableHighAccuracy: true });
+    }
+
+    function initMonitoreoMap() {
+        monitoreoMap = L.map('map-monitoreo').setView([19.4326, -99.1332], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(monitoreoMap);
+
+        unsubscribeFromLocations = db.collection('locations').onSnapshot(snapshot => {
+            snapshot.docChanges().forEach(change => {
+                const doc = change.doc;
+                const id = doc.id;
+                const data = doc.data();
+
+                if (change.type === 'removed') {
+                    if (markers[id]) {
+                        markers[id].remove();
+                        delete markers[id];
+                    }
+                    return;
+                }
+
+                const latLng = [data.lat, data.lng];
+                if (markers[id]) {
+                    markers[id].setLatLng(latLng);
+                } else {
+                    markers[id] = L.marker(latLng)
+                        .addTo(monitoreoMap)
+                        .bindPopup(data.email || 'Custodio');
+                }
+            });
+        });
+    }
+
+    function cleanupOnLogout() {
+        // Limpieza para custodio
+        if (locationWatcherId) {
+            navigator.geolocation.clearWatch(locationWatcherId);
+            locationWatcherId = null;
+        }
+        if (currentUser && custodioMap) { // Solo si era custodio
+            db.collection('locations').doc(currentUser.uid).delete();
+        }
+        if (custodioMap) {
+            custodioMap.remove();
+            custodioMap = null;
+            userMarker = null;
+        }
+
+        // Limpieza para monitoreo
+        if (unsubscribeFromLocations) {
+            unsubscribeFromLocations();
+            unsubscribeFromLocations = null;
+        }
+        if (monitoreoMap) {
+            monitoreoMap.remove();
+            monitoreoMap = null;
+            Object.values(markers).forEach(marker => marker.remove());
         }
     }
 });
