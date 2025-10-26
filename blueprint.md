@@ -58,17 +58,18 @@ Esta aplicación está diseñada para facilitar la comunicación y coordinación
 
 ## **Plan de Implementación Actual**
 
-### **Fase 1: Configuración Inicial y Autenticación**
+### **Fase 2: Integración de Firebase y Vistas de Rol**
 
-1.  **Configurar el Entorno de Desarrollo:**
-    *   Crear la estructura de archivos del proyecto: `index.html`, `style.css`, `main.js`.
-    *   Inicializar un nuevo proyecto de Firebase.
-    *   Integrar el SDK de Firebase en el proyecto.
-2.  **Desarrollar la Interfaz de Inicio de Sesión:**
-    *   Crear un formulario de inicio de sesión con campos para email y contraseña.
-    *   Diseñar botones para los roles **custodio** y **monitoreo**.
-    *   Estilizar la página de inicio de sesión con CSS moderno, aplicando la paleta de colores y la tipografía definidas.
-3.  **Implementar la Lógica de Autenticación:**
-    *   Utilizar Firebase Authentication para gestionar el registro y el inicio de sesión de usuarios.
-    *   Asignar roles a los usuarios durante el registro y almacenarlos en Firestore.
-    *   Redirigir a los usuarios a la vista correspondiente según su rol después de iniciar sesión.
+1.  **Integrar el SDK de Firebase:**
+    *   Añadir los scripts del SDK de Firebase para Authentication y Firestore en `index.html`.
+    *   Crear y configurar el archivo `firebase-config.js` con las credenciales del proyecto de Firebase.
+2.  **Implementar la Lógica de Autenticación con Firebase:**
+    *   En `main.js`, inicializar Firebase y utilizar `signInWithEmailAndPassword` para autenticar a los usuarios.
+    *   Implementar una función para crear nuevos usuarios (`createUserWithEmailAndPassword`) para facilitar las pruebas.
+    *   Manejar los errores de autenticación y mostrar mensajes al usuario.
+3.  **Crear las Vistas por Rol (Custodio y Monitoreo):**
+    *   Añadir la estructura HTML para las vistas de custodio y monitoreo en `index.html`.
+    *   Estilizar las nuevas vistas en `style.css` y mantenerlas ocultas por defecto.
+4.  **Implementar la Redirección Basada en Roles:**
+    *   Después de un inicio de sesión exitoso, consultar la base de datos de Firestore para obtener el rol del usuario.
+    *   Mostrar la vista correspondiente (`custodio-view` o `monitoreo-view`) y ocultar el contenedor de inicio de sesión.
