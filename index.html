@@ -1,14 +1,27 @@
-<!doctype html>
-<html lang="en">
+
+<!DOCTYPE html>
+<html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicación de Monitoreo y Custodia</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
-  <script defer type="text/javascript" src="/main.js"></script>
+    <div id="login-container">
+        <h1>Bienvenido</h1>
+        <p>Seleccione su rol para continuar</p>
+        <div id="role-selection">
+            <button id="custodio-btn">Custodio</button>
+            <button id="monitoreo-btn">Monitoreo</button>
+        </div>
+        <form id="login-form" class="hidden">
+            <input type="email" id="email" placeholder="Correo electrónico" required>
+            <input type="password" id="password" placeholder="Contraseña" required>
+            <button type="submit">Iniciar Sesión</button>
+        </form>
+    </div>
+
+    <script src="main.js"></script>
 </body>
 </html>
