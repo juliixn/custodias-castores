@@ -35,22 +35,39 @@
         </form>
     </div>
 
-    <div id="custodio-view" class="hidden">
+    <div id="custodio-view" class="hidden main-view">
         <header>
             <h1>Vista de Custodio</h1>
             <button id="logout-btn">Cerrar Sesión</button>
         </header>
         <main>
             <div id="map"></div>
-            <div id="quick-actions">
-                <button id="torton-btn"><img src="https://placehold.co/100x100/4dd0e1/000000?text=Torton" alt="Torton"></button>
-                <button id="trailer-btn"><img src="https://placehold.co/100x100/4dd0e1/000000?text=Trailer" alt="Trailer"></button>
-                <button id="container-btn"><img src="https://placehold.co/100x100/4dd0e1/000000?text=Contenedor" alt="Contenedor"></button>
+            <!-- Panel de Acciones -->
+            <div id="custodio-actions-panel">
+                <!-- Acciones Rápidas de Reporte de Unidad -->
+                <div id="quick-actions">
+                    <p>Reportar Unidad:</p>
+                    <div class="unit-buttons">
+                        <button class="unit-btn" data-unit-type="torton"><img src="https://placehold.co/80x80/4dd0e1/1a1a1a?text=Torton" alt="Torton"></button>
+                        <button class="unit-btn" data-unit-type="trailer"><img src="https://placehold.co/80x80/4dd0e1/1a1a1a?text=Trailer" alt="Trailer"></button>
+                        <button class="unit-btn" data-unit-type="container"><img src="https://placehold.co/80x80/4dd0e1/1a1a1a?text=Contenedor" alt="Contenedor"></button>
+                    </div>
+                </div>
+                <!-- Acciones de Seguimiento -->
+                <div id="report-actions" class="hidden">
+                    <p>Opciones de Reporte:</p>
+                    <button class="action-btn" id="accompany-btn">Dar Acompañamiento</button>
+                    <button class="action-btn" id="on-position-btn">Permanecer en Posición</button>
+                    <button class="action-btn" id="wait-instructions-btn">Esperar Indicaciones</button>
+                    <button class="action-btn" id="cancel-report-btn">Cancelar Reporte</button>
+                </div>
+                <!-- Botón de Emergencia -->
+                <button id="sos-btn">SOS</button>
             </div>
         </main>
     </div>
 
-    <div id="monitoreo-view" class="hidden">
+    <div id="monitoreo-view" class="hidden main-view">
         <header>
             <h1>Vista de Monitoreo</h1>
             <button id="logout-btn-monitoreo">Cerrar Sesión</button>
@@ -62,6 +79,32 @@
                 <!-- Los reportes se insertarán aquí -->
             </div>
         </main>
+    </div>
+
+    <!-- Modal del Teclado Numérico -->
+    <div id="numpad-modal" class="hidden">
+        <div class="numpad-container">
+            <h2>Ingrese Número de Unidad</h2>
+            <input type="text" id="numpad-display" readonly>
+            <div class="numpad-grid">
+                <button class="numpad-key">1</button>
+                <button class="numpad-key">2</button>
+                <button class="numpad-key">3</button>
+                <button class="numpad-key">4</button>
+                <button class="numpad-key">5</button>
+                <button class="numpad-key">6</button>
+                <button class="numpad-key">7</button>
+                <button class="numpad-key">8</button>
+                <button class="numpad-key">9</button>
+                <button class="numpad-key" id="numpad-clear">C</button>
+                <button class="numpad-key">0</button>
+                <button class="numpad-key" id="numpad-backspace">⌫</button>
+            </div>
+            <div class="numpad-actions">
+                <button id="numpad-cancel">Cancelar</button>
+                <button id="numpad-confirm">Confirmar</button>
+            </div>
+        </div>
     </div>
 
     <!-- Firebase SDK -->

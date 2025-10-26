@@ -9,40 +9,47 @@ Esta aplicación está diseñada para facilitar la comunicación y coordinación
 
 ### **Autenticación y Roles de Usuario**
 
-*   **Inicio de Sesión:** Sistema de autenticación seguro con Firebase que diferencia entre usuarios **custodio** y **monitoreo**.
-*   **Registro de Usuarios:** Permite a los nuevos usuarios registrarse con un correo, contraseña y rol.
+*   **Inicio de Sesión y Registro:** Sistema de autenticación seguro con Firebase que diferencia entre roles de **custodio** y **monitoreo**.
 *   **Persistencia de Sesión:** Mantiene al usuario conectado hasta que cierra la sesión explícitamente.
-*   **Vistas Diferenciadas:** Redirección automática a una interfaz específica según el rol del usuario.
+*   **Vistas Diferenciadas:** Redirección automática a una interfaz específica según el rol.
+
+### **Geolocalización y Mapas con Leaflet**
+
+*   **Seguimiento en Tiempo Real:** Los custodios comparten su ubicación, que se actualiza en tiempo real en su propia vista y en la del monitor.
+*   **Mapa de Monitoreo Centralizado:** El personal de monitoreo visualiza la ubicación de todos los custodios activos en un solo mapa.
+*   **Sincronización con Firestore:** Las ubicaciones se almacenan y actualizan en la colección `locations` de Firestore.
 
 ## **Diseño y Estilo**
 
-*   **Interfaz Moderna:** Diseño limpio y funcional, con una paleta de colores vibrante y tipografía expresiva para una fácil comprensión.
-*   **Iconografía Intuitiva:** Uso de iconos para mejorar la navegación y la usabilidad de la aplicación.
-*   **Efectos Visuales:** Sombras y texturas sutiles para crear una sensación de profundidad y una experiencia de usuario premium.
-*   **Responsividad:** Diseño adaptable que funciona de manera óptima en dispositivos móviles y de escritorio.
-*   **Accesibilidad:** Implementación de estándares de accesibilidad para garantizar que la aplicación pueda ser utilizada por una amplia variedad de usuarios.
+*   **Interfaz Moderna y Responsiva:** Diseño limpio y funcional, adaptable a dispositivos móviles y de escritorio.
+*   **Iconografía Intuitiva y Efectos Visuales:** Uso de iconos, sombras y texturas para una experiencia de usuario premium.
+*   **Accesibilidad:** Implementación de estándares de accesibilidad.
 
 ---
 
 ## **Plan de Implementación Actual**
 
-### **Fase 3: Geolocalización y Mapa Interactivo con Leaflet**
+### **Fase 4: Funcionalidades del Custodio (Reportes y Acciones)**
 
-1.  **Integrar la Biblioteca Leaflet:**
-    *   Añadir el CSS y el JavaScript de Leaflet al archivo `index.html` desde una CDN.
-2.  **Configurar los Contenedores del Mapa:**
-    *   Ajustar `style.css` para dar a los elementos de mapa (`#map` y `#map-monitoreo`) una altura definida para que sean visibles.
-3.  **Implementar la Geolocalización del Custodio:**
-    *   En `main.js`, al mostrar la vista de custodio, solicitar permisos de geolocalización.
-    *   Usar `navigator.geolocation.watchPosition` para obtener la ubicación del custodio en tiempo real.
-    *   Inicializar un mapa de Leaflet en la vista del custodio y mostrar su ubicación con un marcador.
-    *   Centrar el mapa en la ubicación del custodio cada vez que se actualice.
-4.  **Sincronizar la Ubicación con Firestore:**
-    *   Cada vez que la ubicación del custodio se actualice, guardar las coordenadas (latitud y longitud) en una colección de Firestore llamada `locations`, usando el UID del usuario como identificador del documento.
-5.  **Implementar el Mapa de Monitoreo:**
-    *   Al mostrar la vista de monitoreo, inicializar un mapa de Leaflet.
-    *   Escuchar en tiempo real los cambios en la colección `locations` de Firestore.
-    *   Para cada custodio en la colección, mostrar un marcador en el mapa de monitoreo.
-    *   Actualizar la posición de los marcadores en tiempo real a medida que los custodios se mueven.
-6.  **Manejar la Desconexión:**
-    *   Al cerrar la sesión, el custodio debe dejar de compartir su ubicación y su registro debe eliminarse de la colección `locations` en Firestore para que desaparezca del mapa de monitoreo.
+1.  **Crear la Interfaz del Teclado Numérico:**
+    *   Diseñar y añadir en `index.html` un modal con un teclado numérico para que el custodio ingrese el número económico de la unidad reportada.
+    *   Este modal estará oculto por defecto y se mostrará al presionar un botón de tipo de unidad.
+2.  **Añadir la Interfaz de Opciones de Reporte:**
+    *   Incorporar en la vista de custodio los botones para las tres acciones principales: "Dar Acompañamiento", "Permanecer en Posición" y "Esperar Indicaciones".
+    *   Añadir un botón de **SOS** prominente para emergencias.
+3.  **Estilizar los Nuevos Elementos:**
+    *   En `style.css`, dar formato al teclado numérico, los botones de acción y el botón de SOS para que sean visualmente atractivos, funcionales y coherentes con el diseño de la app.
+4.  **Implementar la Lógica de Reportes en `main.js`:**
+    *   Al hacer clic en un tipo de unidad (Torton, tráiler, etc.), mostrar el modal del teclado numérico.
+    *   Al confirmar el número, crear un nuevo documento en una colección `reports` en Firestore. Este documento incluirá:
+        *   `unitType`: (e.g., "torton")
+        *   `unitNumber`: (El número ingresado)
+        *   `custodioId`: (El UID del custodio)
+        *   `custodioEmail`: (El email del custodio)
+        *   `location`: (Las coordenadas actuales)
+        *   `timestamp`: (La hora del reporte)
+        *   `status`: (Inicialmente "created")
+    *   **Acción "Permanecer en Posición"**: Actualizará el estado del reporte a `status: "on_position"` y enviará una notificación verde (lógica futura).
+    *   **Acción "Esperar Indicaciones"**: Actualizará el estado a `status: "waiting_instructions"` y enviará una notificación amarilla (lógica futura).
+    *   **Acción "Dar Acompañamiento"**: Actualizará el estado a `status: "accompanying"` e iniciará la grabación de video (funcionalidad futura).
+    *   **Acción "SOS"**: Implementar una marcación directa al número de emergencias (e.g., 911) usando `window.location.href = 'tel:911';`.
